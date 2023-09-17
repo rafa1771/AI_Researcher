@@ -218,37 +218,32 @@ app = FastAPI()
 class Query(BaseModel):
     query: str
 
-# @app.post("/")
-# def researchAgent(query: Query):
-#     query = query.query
-#     content = agent({"input": query})
-#     actual_content = content['output']
-#     return actual_content
+def parse_content_to_dict(content: str):
+    sections = [
+        "Sender Profile", "Background", "Company Profile", 
+        "Reputation and History", "Financial Stability", 
+        "Art Purchases and Auction Participation", "Testimonials and Reviews", 
+        "High Net-Worth Individual or Distinguished Art Collector", "References"
+    ]
 
+    data = {}
+    for i, section in enumerate(sections):
+        start_idx = content.find(section)
+        if start_idx != -1:  # If the section is found in the content
+            if i < len(sections) - 1:
+                # Get the start index of the next section
+                next_section_idx = content.find(sections[i+1])
+                data[section] = content[start_idx+len(section):next_section_idx].strip()
+            else:
+                # For the last section, take everything after the section title
+                data[section] = content[start_idx+len(section):].strip()
+
+    return data
 
 @app.post("/")
 def researchAgent(query: Query):
     query = query.query
     content = agent({"input": query})
     actual_content = content['output']
-    
-    # Let's assume the actual_content string follows a format like:
-    # "Sender Profile:\n\nDetails here...\n\nCompany Profile:\n\nDetails here...\n\n..."
-    # We'll split this string into its constituent parts:
-    
-    sections = ["Sender Profile", "Background", "Company Profile", "Reputation and History", 
-                "Financial Stability", "Art Purchases and Auction Participation", 
-                "Testimonials and Reviews", "High Net-Worth Individual or Distinguished Art Collector", 
-                "References"]
-    
-    data = {}
-    for section in sections:
-        start_idx = actual_content.find(section)
-        if start_idx != -1:  # If the section is found in the actual_content
-            end_idx = actual_content.find("\n\n", start_idx)  # Find the next double newline after the section
-            if end_idx != -1:
-                data[section] = actual_content[start_idx+len(section):end_idx].strip()
-            else:
-                data[section] = actual_content[start_idx+len(section):].strip()
 
-    return data
+    return parse_content_to_dict(actual_content)
