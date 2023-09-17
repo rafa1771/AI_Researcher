@@ -226,17 +226,19 @@ def parse_content_to_dict(content: str):
         "High Net-Worth Individual or Distinguished Art Collector", "References"
     ]
 
-    data = {}
+    # Initialize the dictionary with default values
+    data = {section: "Not Available" for section in sections}
+
     for i, section in enumerate(sections):
         start_idx = content.find(section)
         if start_idx != -1:  # If the section is found in the content
             if i < len(sections) - 1:
                 # Get the start index of the next section
                 next_section_idx = content.find(sections[i+1])
-                data[section] = content[start_idx+len(section):next_section_idx].strip()
+                data[section] = content[start_idx+len(section)+1:next_section_idx].strip()  # +1 to skip colon
             else:
                 # For the last section, take everything after the section title
-                data[section] = content[start_idx+len(section):].strip()
+                data[section] = content[start_idx+len(section)+1:].strip()  # +1 to skip colon
 
     return data
 
